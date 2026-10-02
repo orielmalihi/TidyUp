@@ -41,6 +41,8 @@ fun ParentDashboardScreen(
     onReject: (String) -> Unit,
     onBack: () -> Unit
 ) {
+    // Entries whose chore or hero was deleted can't be reviewed, so they must not be counted.
+    val reviewable = submittedChores.filter { s -> chores.any { it.id == s.choreId } && cleaners.any { it.id == s.cleanerId } }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -48,7 +50,7 @@ fun ParentDashboardScreen(
     ) {
         ScreenHeader(title = stringResource(R.string.parent_corner), onBack = onBack)
 
-        if (submittedChores.isEmpty()) {
+        if (reviewable.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = stringResource(R.string.nothing_to_review),
@@ -63,7 +65,7 @@ fun ParentDashboardScreen(
             ) {
                 item {
                     Text(
-                        text = stringResource(R.string.awaiting_review, submittedChores.size),
+                        text = stringResource(R.string.awaiting_review, reviewable.size),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -72,7 +74,7 @@ fun ParentDashboardScreen(
                         color = Color.Gray
                     )
                 }
-                items(submittedChores, key = { it.id }) { instance ->
+                items(reviewable, key = { it.id }) { instance ->
                     val chore = chores.find { it.id == instance.choreId }
                     val cleaner = cleaners.find { it.id == instance.cleanerId }
                     if (chore != null && cleaner != null) {

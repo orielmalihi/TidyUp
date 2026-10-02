@@ -143,11 +143,17 @@ class ChoreAppViewModel @Inject constructor(
     }
 
     fun deleteAllChores() {
-        viewModelScope.launch { choreRepository.deleteAllChores() }
+        viewModelScope.launch {
+            choreInstances.value.forEach { choreInstanceRepository.deleteInstance(it) }
+            choreRepository.deleteAllChores()
+        }
     }
 
     fun deleteChore(chore: Chore) {
-        viewModelScope.launch { choreRepository.deleteChore(chore) }
+        viewModelScope.launch {
+            choreInstances.value.filter { it.choreId == chore.id }.forEach { choreInstanceRepository.deleteInstance(it) }
+            choreRepository.deleteChore(chore)
+        }
     }
 
     fun claimChore(choreId: String, cleanerId: String) {
