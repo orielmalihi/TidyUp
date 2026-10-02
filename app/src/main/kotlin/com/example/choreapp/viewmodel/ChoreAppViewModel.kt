@@ -19,6 +19,8 @@ import com.example.choreapp.domain.model.Comment
 import com.example.choreapp.domain.model.DailyScore
 import com.example.choreapp.utils.Celebration
 import com.example.choreapp.utils.DateUtils
+import com.example.choreapp.utils.Sound
+import com.example.choreapp.utils.SoundEffects
 import com.example.choreapp.utils.Leaderboard
 import com.example.choreapp.utils.ScoreEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -123,6 +125,7 @@ class ChoreAppViewModel @Inject constructor(
     }
 
     fun addCleaner(cleaner: Cleaner) {
+        SoundEffects.play(Sound.ADD)
         viewModelScope.launch { cleanerRepository.addCleaner(cleaner) }
     }
 
@@ -131,6 +134,7 @@ class ChoreAppViewModel @Inject constructor(
     }
 
     fun addChore(chore: Chore) {
+        SoundEffects.play(Sound.ADD)
         viewModelScope.launch { choreRepository.addChore(chore) }
     }
 
@@ -148,6 +152,7 @@ class ChoreAppViewModel @Inject constructor(
                 it.choreId == choreId && it.status in TAKEN_STATUSES
             }
             if (alreadyTaken) return@launch
+            SoundEffects.play(Sound.POP)
             choreInstanceRepository.addInstance(
                 ChoreInstance(
                     choreId = choreId,
@@ -162,7 +167,10 @@ class ChoreAppViewModel @Inject constructor(
     fun unclaimChore(instanceId: String) {
         viewModelScope.launch {
             val instance = choreInstanceRepository.getInstanceById(instanceId) ?: return@launch
-            if (instance.status == ChoreStatus.SELECTED) choreInstanceRepository.deleteInstance(instance)
+            if (instance.status == ChoreStatus.SELECTED) {
+                SoundEffects.play(Sound.PUT_BACK)
+                choreInstanceRepository.deleteInstance(instance)
+            }
         }
     }
 
@@ -171,6 +179,7 @@ class ChoreAppViewModel @Inject constructor(
             val instance = choreInstanceRepository.getInstanceById(instanceId) ?: return@launch
             if (instance.status != ChoreStatus.SELECTED) return@launch
             choreInstanceRepository.updateInstanceStatus(instanceId, ChoreStatus.SUBMITTED)
+            SoundEffects.play(Sound.DONE)
 
             val chore = choreRepository.getChoreById(instance.choreId)
             val kid = cleanerRepository.getCleanerById(instance.cleanerId)
@@ -196,6 +205,7 @@ class ChoreAppViewModel @Inject constructor(
             val chore = choreRepository.getChoreById(instance.choreId) ?: return@launch
 
             choreInstanceRepository.updateInstanceStatus(instanceId, ChoreStatus.APPROVED)
+            SoundEffects.play(Sound.APPROVE)
 
             val date = DateUtils.getTodayDate()
             if (dailyScoreRepository.getScoreForCleanerOnDate(instance.cleanerId, date) == null) {
@@ -212,6 +222,7 @@ class ChoreAppViewModel @Inject constructor(
 
     fun rejectChore(instanceId: String) {
         viewModelScope.launch {
+            SoundEffects.play(Sound.REJECT)
             choreInstanceRepository.updateInstanceStatus(instanceId, ChoreStatus.SELECTED)
         }
     }

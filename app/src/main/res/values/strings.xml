@@ -54,4 +54,5 @@
     <string name="chore_taken_by">%1$s is on it!</string>
     <string name="how_many">How many times? (1-10)</string>
     <string name="how_many_hint">Creates separate numbered chores, e.g. Clean room 1, 2, 3</string>
+    <string name="sounds">Sounds</string>
 </resources>

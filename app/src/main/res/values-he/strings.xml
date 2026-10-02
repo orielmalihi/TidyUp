@@ -54,4 +54,5 @@
     <string name="chore_taken_by">%1$s על זה!</string>
     <string name="how_many">כמה פעמים? (1-10)</string>
     <string name="how_many_hint">יוצר משימות נפרדות ממוספרות, למשל ניקיון חדר 1, 2, 3</string>
+    <string name="sounds">צלילים</string>
 </resources>

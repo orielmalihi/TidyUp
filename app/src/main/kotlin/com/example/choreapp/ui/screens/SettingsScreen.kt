@@ -14,8 +14,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import com.example.choreapp.utils.SoundEffects
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -47,6 +55,23 @@ fun SettingsScreen(
                     LanguageButton(stringResource(R.string.english), currentLanguage == "en", { onLanguageChange("en") }, Modifier.weight(1f))
                     LanguageButton(stringResource(R.string.hebrew), currentLanguage == "he", { onLanguageChange("he") }, Modifier.weight(1f))
                 }
+            }
+        }
+
+        val context = LocalContext.current
+        var soundOn by remember { mutableStateOf(SoundEffects.enabled) }
+        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("🔔  " + stringResource(R.string.sounds), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Switch(checked = soundOn, onCheckedChange = {
+                    soundOn = it
+                    SoundEffects.setEnabled(context, it)
+                })
             }
         }
 
