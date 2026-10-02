@@ -194,9 +194,12 @@ class ChoreAppViewModel @Inject constructor(
         }
     }
 
-    suspend fun getRandomComment(): String {
-        val comment = commentRepository.getRandomComment("good_job") ?: return "Good job!"
-        return if (_settings.value?.language == "he") comment.textHe else comment.textEn
+    fun getRandomComment(onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val comment = commentRepository.getRandomComment("good_job") ?: return@launch
+            val result = if (_settings.value?.language == "he") comment.textHe else comment.textEn
+            onResult(result)
+        }
     }
 
     fun updateLanguage(language: String) {
