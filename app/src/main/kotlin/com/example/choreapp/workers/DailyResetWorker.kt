@@ -1,7 +1,7 @@
 package com.example.choreapp.workers
 
 import android.content.Context
-import androidx.work.Worker
+import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.choreapp.data.db.ChoreAppDatabase
 import com.example.choreapp.utils.DateUtils
@@ -9,9 +9,9 @@ import com.example.choreapp.utils.DateUtils
 class DailyResetWorker(
     context: Context,
     params: WorkerParameters
-) : Worker(context, params) {
+) : CoroutineWorker(context, params) {
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result {
         return try {
             val database = ChoreAppDatabase.getDatabase(applicationContext)
             val dailyScoreDao = database.dailyScoreDao()
