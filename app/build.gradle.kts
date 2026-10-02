@@ -52,9 +52,13 @@ android {
 }
 
 dependencies {
-    // Core Android - downgraded for API 36 compatibility
-    implementation("androidx.core:core-ktx:1.10.1")
+    // Core Android - force specific versions to prevent transitive conflicts
+    implementation("androidx.core:core-ktx:1.10.1") {
+        // Exclude any newer core versions that might be pulled in transitively
+        exclude(group = "androidx.core", module = "core")
+    }
     implementation("androidx.core:core:1.10.1")
+    
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose-android:2.7.0")
     implementation("androidx.activity:activity-compose:1.7.2")
@@ -73,17 +77,26 @@ dependencies {
     implementation("androidx.room:room-ktx:2.5.2")
     kapt("androidx.room:room-compiler:2.5.2")
 
-    // Hilt Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.47")
+    // Hilt Dependency Injection - exclude newer androidx.core versions
+    implementation("com.google.dagger:hilt-android:2.47") {
+        exclude(group = "androidx.core", module = "core")
+        exclude(group = "androidx.core", module = "core-ktx")
+    }
     kapt("com.google.dagger:hilt-compiler:2.47")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0") {
+        exclude(group = "androidx.core", module = "core")
+        exclude(group = "androidx.core", module = "core-ktx")
+    }
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     // WorkManager for background tasks
-    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("androidx.work:work-runtime-ktx:2.8.1") {
+        exclude(group = "androidx.core", module = "core")
+        exclude(group = "androidx.core", module = "core-ktx")
+    }
     implementation("androidx.hilt:hilt-work:1.0.0")
     kapt("androidx.hilt:hilt-compiler:1.0.0")
 
@@ -95,19 +108,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-
-    // Force specific versions to avoid transitive dependency conflicts
-    constraints {
-        implementation("androidx.core:core:1.10.1") {
-            because("Required for API 36 compatibility")
-        }
-        implementation("androidx.core:core-ktx:1.10.1") {
-            because("Required for API 36 compatibility")
-        }
-        implementation("androidx.lifecycle:lifecycle-runtime-compose-android:2.7.0") {
-            because("Required for API 36 compatibility")
-        }
-    }
 }
 
 kapt {
