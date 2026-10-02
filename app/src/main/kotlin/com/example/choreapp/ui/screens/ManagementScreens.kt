@@ -28,6 +28,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -125,10 +126,12 @@ fun ChoreManagementScreen(
     chores: List<Chore>,
     onAddChore: (Chore) -> Unit,
     onUpdateChore: (Chore) -> Unit,
+    onDeleteAll: () -> Unit,
     onDeleteChore: (Chore) -> Unit,
     onBack: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    var showRemoveAll by remember { mutableStateOf(false) }
     var toEdit by remember { mutableStateOf<Chore?>(null) }
     var toDelete by remember { mutableStateOf<Chore?>(null) }
 
@@ -169,6 +172,17 @@ fun ChoreManagementScreen(
                 }
             }
             item { AddButton(stringResource(R.string.add_chore)) { showAddDialog = true } }
+            if (chores.isNotEmpty()) {
+                item {
+                    OutlinedButton(
+                        onClick = { showRemoveAll = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) { Text("🗑️  " + stringResource(R.string.remove_all)) }
+                }
+            }
         }
     }
 
@@ -180,6 +194,24 @@ fun ChoreManagementScreen(
                 showAddDialog = false
             },
             onCancel = { showAddDialog = false }
+        )
+    }
+    if (showRemoveAll) {
+        AlertDialog(
+            onDismissRequest = { showRemoveAll = false },
+            title = { Text(stringResource(R.string.remove_all_confirm)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteAll()
+                        showRemoveAll = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(R.string.remove_all)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemoveAll = false }) { Text(stringResource(R.string.cancel)) }
+            }
         )
     }
     toEdit?.let { chore ->

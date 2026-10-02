@@ -25,6 +25,9 @@ interface ChoreDao {
     @Query("SELECT * FROM chores WHERE id = :id")
     suspend fun getChoreById(id: String): Chore?
 
+    @Query("DELETE FROM chores")
+    suspend fun deleteAll()
+
     @Query("DELETE FROM chores WHERE id = :id")
     suspend fun deleteById(id: String)
 }

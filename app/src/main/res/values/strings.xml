@@ -55,4 +55,6 @@
     <string name="how_many">How many times? (1-10)</string>
     <string name="how_many_hint">Creates separate numbered chores, e.g. Clean room 1, 2, 3</string>
     <string name="sounds">Sounds</string>
+    <string name="remove_all">Remove all</string>
+    <string name="remove_all_confirm">Remove all chores?</string>
 </resources>

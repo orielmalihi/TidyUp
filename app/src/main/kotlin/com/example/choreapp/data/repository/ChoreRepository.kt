@@ -16,5 +16,7 @@ class ChoreRepository @Inject constructor(
 
     suspend fun deleteChore(chore: Chore) = choreDao.delete(chore)
 
+    suspend fun deleteAllChores() = choreDao.deleteAll()
+
     suspend fun getChoreById(id: String): Chore? = choreDao.getChoreById(id)
 }

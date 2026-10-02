@@ -154,6 +154,7 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                     chores = chores,
                     onAddChore = viewModel::addChore,
                     onUpdateChore = viewModel::updateChore,
+                    onDeleteAll = viewModel::deleteAllChores,
                     onDeleteChore = viewModel::deleteChore,
                     onBack = { navController.popBackStack() }
                 )
