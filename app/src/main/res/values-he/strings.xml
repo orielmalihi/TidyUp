@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">אפליקציית המשימות</string>
+    <string name="app_name">סדר הבית</string>
     <string name="main_screen_title">נקודות היום</string>
     <string name="chore_selection_title">בחר משימה</string>
     <string name="all_time_title">לוח הדירוג של כל הזמנים</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ChoreApp</string>
+    <string name="app_name">TidyUp</string>
     <string name="main_screen_title">Today\'s Points</string>
     <string name="chore_selection_title">Select a Chore</string>
     <string name="all_time_title">All-Time Leaderboard</string>

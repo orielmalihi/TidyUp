@@ -1,4 +1,4 @@
-# 🎉 ChoreApp - Gamified Kids Chore Tracker
+# 🎉 TidyUp - Gamified Kids Chore Tracker
 
 A fun, colorful Android app that encourages kids to do household chores by turning them into a competitive, points-based game!
 
@@ -218,6 +218,6 @@ This project is provided as-is for family use.
 
 ## 👨‍👩‍👧‍👦 About
 
-ChoreApp was created to gamify household chores and encourage kids to take responsibility while having fun in a competitive, supportive environment.
+TidyUp was created to gamify household chores and encourage kids to take responsibility while having fun in a competitive, supportive environment.
 
 **Happy cleaning! 🧹**
