@@ -2,14 +2,44 @@ package com.example.choreapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.choreapp.data.repository.*
-import com.example.choreapp.domain.model.*
+import com.example.choreapp.data.repository.AllTimeScoreRepository
+import com.example.choreapp.data.repository.ChoreInstanceRepository
+import com.example.choreapp.data.repository.ChoreRepository
+import com.example.choreapp.data.repository.CleanerRepository
+import com.example.choreapp.data.repository.CommentRepository
+import com.example.choreapp.data.repository.DailyScoreRepository
+import com.example.choreapp.data.repository.SettingsRepository
+import com.example.choreapp.domain.model.AllTimeScore
+import com.example.choreapp.domain.model.AppSettings
+import com.example.choreapp.domain.model.Chore
+import com.example.choreapp.domain.model.ChoreInstance
+import com.example.choreapp.domain.model.ChoreStatus
+import com.example.choreapp.domain.model.Cleaner
+import com.example.choreapp.domain.model.Comment
+import com.example.choreapp.domain.model.DailyScore
+import com.example.choreapp.utils.Celebration
 import com.example.choreapp.utils.DateUtils
+import com.example.choreapp.utils.Leaderboard
+import com.example.choreapp.utils.ScoreEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChoreAppViewModel @Inject constructor(
     private val cleanerRepository: CleanerRepository,
@@ -21,190 +51,197 @@ class ChoreAppViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    // UI State
-    private val _allCleaners = MutableStateFlow<List<Cleaner>>(emptyList())
-    val allCleaners: StateFlow<List<Cleaner>> = _allCleaners.asStateFlow()
+    // Re-emits when midnight passes so every "today" screen starts from zero automatically.
+    private val today: Flow<String> = flow {
+        while (true) {
+            emit(DateUtils.getTodayDate())
+            delay(30_000)
+        }
+    }.distinctUntilChanged()
 
-    private val _allChores = MutableStateFlow<List<Chore>>(emptyList())
-    val allChores: StateFlow<List<Chore>> = _allChores.asStateFlow()
+    val allCleaners: StateFlow<List<Cleaner>> = cleanerRepository.getAllCleaners()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val _todayScores = MutableStateFlow<List<DailyScore>>(emptyList())
-    val todayScores: StateFlow<List<DailyScore>> = _todayScores.asStateFlow()
+    val allChores: StateFlow<List<Chore>> = choreRepository.getAllChores()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val _allTimeScores = MutableStateFlow<List<AllTimeScore>>(emptyList())
-    val allTimeScores: StateFlow<List<AllTimeScore>> = _allTimeScores.asStateFlow()
+    val todayLeaderboard: StateFlow<List<ScoreEntry>> = combine(
+        allCleaners,
+        today.flatMapLatest { dailyScoreRepository.getScoresForDate(it) }
+    ) { cleaners, scores -> Leaderboard.daily(cleaners, scores) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val _settings = MutableStateFlow<AppSettings?>(null)
-    val settings: StateFlow<AppSettings?> = _settings.asStateFlow()
+    val allTimeLeaderboard: StateFlow<List<ScoreEntry>> = combine(
+        allCleaners,
+        allTimeScoreRepository.getAllTimeScores()
+    ) { cleaners, scores -> Leaderboard.allTime(cleaners, scores) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val _choreInstances = MutableStateFlow<List<ChoreInstance>>(emptyList())
-    val choreInstances: StateFlow<List<ChoreInstance>> = _choreInstances.asStateFlow()
+    val choreInstances: StateFlow<List<ChoreInstance>> = today
+        .flatMapLatest { choreInstanceRepository.getInstancesByDate(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val settings: StateFlow<AppSettings?> = settingsRepository.getSettings()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val _celebration = MutableStateFlow<Celebration?>(null)
+    val celebration: StateFlow<Celebration?> = _celebration.asStateFlow()
 
     init {
-        loadAllCleaners()
-        loadAllChores()
-        loadTodayScores()
-        loadAllTimeScores()
-        loadSettings()
-        ensureDailyScoresExist()
-        loadChoreInstances()
-        seedDefaultComments()
-    }
-
-    private fun loadAllCleaners() {
         viewModelScope.launch {
-            cleanerRepository.getAllCleaners().collect {
-                _allCleaners.value = it
-            }
+            ensureSettings()
+            seedDefaultComments()
+            seedDefaultChores()
         }
     }
 
-    private fun loadAllChores() {
-        viewModelScope.launch {
-            choreRepository.getAllChores().collect {
-                _allChores.value = it
-            }
+    private suspend fun ensureSettings() {
+        if (settingsRepository.getSettings().first() == null) {
+            settingsRepository.insertSettings(AppSettings(language = deviceLanguage()))
         }
     }
 
-    private fun loadTodayScores() {
-        viewModelScope.launch {
-            dailyScoreRepository.getScoresForDate(DateUtils.getTodayDate()).collect {
-                _todayScores.value = it.sortedByDescending { score -> score.points }
-            }
+    private fun deviceLanguage() = if (Locale.getDefault().language == "he") "he" else "en"
+
+    private suspend fun seedDefaultComments() {
+        if (commentRepository.getCommentCount(CATEGORY_GOOD_JOB) > 0) return
+        DEFAULT_COMMENTS.forEach { (en, he) ->
+            commentRepository.addComment(Comment(textEn = en, textHe = he, category = CATEGORY_GOOD_JOB))
         }
     }
 
-    private fun loadAllTimeScores() {
-        viewModelScope.launch {
-            allTimeScoreRepository.getAllTimeScores().collect {
-                _allTimeScores.value = it
-            }
-        }
-    }
-
-    private fun loadSettings() {
-        viewModelScope.launch {
-            settingsRepository.getSettings().collect {
-                if (it == null) {
-                    val defaultSettings = AppSettings()
-                    settingsRepository.insertSettings(defaultSettings)
-                    _settings.value = defaultSettings
-                } else {
-                    _settings.value = it
-                }
-            }
-        }
-    }
-
-    private fun loadChoreInstances() {
-        viewModelScope.launch {
-            choreInstanceRepository.getInstancesByDate(DateUtils.getTodayDate()).collect {
-                _choreInstances.value = it
-            }
-        }
-    }
-
-    private fun seedDefaultComments() {
-        viewModelScope.launch {
-            val count = commentRepository.getCommentCount("good_job")
-            if (count == 0) {
-                val defaultComments = listOf(
-                    Comment(textEn = "Good job!", textHe = "עבודה נהדרת!", category = "good_job"),
-                    Comment(textEn = "Awesome work!", textHe = "מדהים!", category = "good_job"),
-                    Comment(textEn = "Keep it up!", textHe = "תמשיך ככה!", category = "good_job"),
-                    Comment(textEn = "Fantastic!", textHe = "פנטסטי!", category = "good_job"),
-                    Comment(textEn = "You're a star!", textHe = "אתה כוכב!", category = "good_job"),
-                    Comment(textEn = "Amazing!", textHe = "מעולה!", category = "good_job"),
-                    Comment(textEn = "Excellent work!", textHe = "עבודה מעולה!", category = "good_job"),
-                    Comment(textEn = "You rock!", textHe = "אתה בטירוף!", category = "good_job"),
-                    Comment(textEn = "Super job!", textHe = "עבודה סופר!", category = "good_job"),
-                    Comment(textEn = "Well done!", textHe = "יפה מאוד!", category = "good_job")
-                )
-                for (comment in defaultComments) {
-                    commentRepository.addComment(comment)
-                }
-            }
-        }
-    }
-
-    private fun ensureDailyScoresExist() {
-        viewModelScope.launch {
-            val today = DateUtils.getTodayDate()
-            for (cleaner in _allCleaners.value) {
-                val existingScore = dailyScoreRepository.getScoreForCleanerOnDate(cleaner.id, today)
-                if (existingScore == null) {
-                    dailyScoreRepository.addScore(DailyScore(cleanerId = cleaner.id, date = today, points = 0))
-                }
-            }
+    // Only on a fresh install, so deleted chores never come back.
+    private suspend fun seedDefaultChores() {
+        if (cleanerRepository.getAllCleaners().first().isNotEmpty()) return
+        if (choreRepository.getAllChores().first().isNotEmpty()) return
+        val hebrew = deviceLanguage() == "he"
+        DEFAULT_CHORES.forEach { chore ->
+            choreRepository.addChore(
+                Chore(name = if (hebrew) chore.he else chore.en, points = chore.points, icon = chore.icon)
+            )
         }
     }
 
     fun addCleaner(cleaner: Cleaner) {
-        viewModelScope.launch {
-            cleanerRepository.addCleaner(cleaner)
-            ensureDailyScoresExist()
-        }
+        viewModelScope.launch { cleanerRepository.addCleaner(cleaner) }
+    }
+
+    fun deleteCleaner(cleaner: Cleaner) {
+        viewModelScope.launch { cleanerRepository.deleteCleaner(cleaner) }
     }
 
     fun addChore(chore: Chore) {
-        viewModelScope.launch {
-            choreRepository.addChore(chore)
-        }
+        viewModelScope.launch { choreRepository.addChore(chore) }
     }
 
-    fun selectChore(choreId: String, cleanerId: String) {
-        viewModelScope.launch {
-            val instance = ChoreInstance(
-                choreId = choreId,
-                cleanerId = cleanerId,
-                date = DateUtils.getTodayDate(),
-                status = ChoreStatus.SELECTED
-            )
-            choreInstanceRepository.addInstance(instance)
-        }
+    fun deleteChore(chore: Chore) {
+        viewModelScope.launch { choreRepository.deleteChore(chore) }
     }
 
-    fun submitChore(choreInstanceId: String) {
+    fun claimChore(choreId: String, cleanerId: String) {
         viewModelScope.launch {
-            choreInstanceRepository.updateInstanceStatus(choreInstanceId, ChoreStatus.SUBMITTED)
-        }
-    }
-
-    fun approveChore(choreInstanceId: String) {
-        viewModelScope.launch {
-            val instance = choreInstanceRepository.getInstanceById(choreInstanceId) ?: return@launch
-            val chore = choreRepository.getChoreById(instance.choreId) ?: return@launch
-            
-            choreInstanceRepository.updateInstanceStatus(choreInstanceId, ChoreStatus.APPROVED)
-            dailyScoreRepository.addPointsToCleanerOnDate(instance.cleanerId, DateUtils.getTodayDate(), chore.points)
-            
-            val existingScore = allTimeScoreRepository.getScoreForCleaner(instance.cleanerId)
-            if (existingScore == null) {
-                allTimeScoreRepository.addScore(AllTimeScore(cleanerId = instance.cleanerId, totalPoints = chore.points))
-            } else {
-                allTimeScoreRepository.addPointsToCleaner(instance.cleanerId, chore.points)
+            val alreadyTaken = choreInstances.value.any {
+                it.choreId == choreId && it.status in TAKEN_STATUSES
             }
+            if (alreadyTaken) return@launch
+            choreInstanceRepository.addInstance(
+                ChoreInstance(
+                    choreId = choreId,
+                    cleanerId = cleanerId,
+                    date = DateUtils.getTodayDate(),
+                    status = ChoreStatus.SELECTED
+                )
+            )
         }
     }
 
-    fun rejectChore(choreInstanceId: String) {
+    fun unclaimChore(instanceId: String) {
         viewModelScope.launch {
-            choreInstanceRepository.updateInstanceStatus(choreInstanceId, ChoreStatus.AVAILABLE)
+            val instance = choreInstanceRepository.getInstanceById(instanceId) ?: return@launch
+            if (instance.status == ChoreStatus.SELECTED) choreInstanceRepository.deleteInstance(instance)
         }
     }
 
-    fun getRandomComment(onResult: (String) -> Unit) {
+    fun submitChore(instanceId: String) {
         viewModelScope.launch {
-            val comment = commentRepository.getRandomComment("good_job") ?: return@launch
-            val result = if (_settings.value?.language == "he") comment.textHe else comment.textEn
-            onResult(result)
+            val instance = choreInstanceRepository.getInstanceById(instanceId) ?: return@launch
+            if (instance.status != ChoreStatus.SELECTED) return@launch
+            choreInstanceRepository.updateInstanceStatus(instanceId, ChoreStatus.SUBMITTED)
+
+            val chore = choreRepository.getChoreById(instance.choreId)
+            val kid = cleanerRepository.getCleanerById(instance.cleanerId)
+            val comment = commentRepository.getRandomComment(CATEGORY_GOOD_JOB)
+            val hebrew = settings.value?.language == "he"
+            val message = when {
+                comment == null -> if (hebrew) "עבודה נהדרת!" else "Good job!"
+                hebrew -> comment.textHe
+                else -> comment.textEn
+            }
+            _celebration.value = Celebration(kid?.name.orEmpty(), message, chore?.points ?: 0)
+        }
+    }
+
+    fun dismissCelebration() {
+        _celebration.value = null
+    }
+
+    fun approveChore(instanceId: String) {
+        viewModelScope.launch {
+            val instance = choreInstanceRepository.getInstanceById(instanceId) ?: return@launch
+            if (instance.status != ChoreStatus.SUBMITTED) return@launch
+            val chore = choreRepository.getChoreById(instance.choreId) ?: return@launch
+
+            choreInstanceRepository.updateInstanceStatus(instanceId, ChoreStatus.APPROVED)
+
+            val date = DateUtils.getTodayDate()
+            if (dailyScoreRepository.getScoreForCleanerOnDate(instance.cleanerId, date) == null) {
+                dailyScoreRepository.addScore(DailyScore(cleanerId = instance.cleanerId, date = date, points = 0))
+            }
+            dailyScoreRepository.addPointsToCleanerOnDate(instance.cleanerId, date, chore.points)
+
+            if (allTimeScoreRepository.getScoreForCleaner(instance.cleanerId) == null) {
+                allTimeScoreRepository.addScore(AllTimeScore(cleanerId = instance.cleanerId, totalPoints = 0))
+            }
+            allTimeScoreRepository.addPointsToCleaner(instance.cleanerId, chore.points)
+        }
+    }
+
+    fun rejectChore(instanceId: String) {
+        viewModelScope.launch {
+            choreInstanceRepository.updateInstanceStatus(instanceId, ChoreStatus.SELECTED)
         }
     }
 
     fun updateLanguage(language: String) {
-        viewModelScope.launch {
-            settingsRepository.updateLanguage(language)
-        }
+        viewModelScope.launch { settingsRepository.updateLanguage(language) }
+    }
+
+    private data class DefaultChore(val en: String, val he: String, val points: Int, val icon: String)
+
+    companion object {
+        private const val CATEGORY_GOOD_JOB = "good_job"
+        private val TAKEN_STATUSES = setOf(ChoreStatus.SELECTED, ChoreStatus.SUBMITTED, ChoreStatus.APPROVED)
+
+        private val DEFAULT_COMMENTS = listOf(
+            "Good job!" to "עבודה נהדרת!",
+            "Awesome work!" to "מדהים!",
+            "Keep it up!" to "תמשיכו ככה!",
+            "Fantastic!" to "פנטסטי!",
+            "You're a star!" to "אתם כוכבים!",
+            "Amazing!" to "מעולה!",
+            "Excellent work!" to "עבודה מצוינת!",
+            "You rock!" to "אתם אלופים!",
+            "Super job!" to "עבודת על!",
+            "Well done!" to "כל הכבוד!"
+        )
+
+        private val DEFAULT_CHORES = listOf(
+            DefaultChore("Make the bed", "לסדר את המיטה", 10, "🛏️"),
+            DefaultChore("Tidy the toys", "לסדר את הצעצועים", 20, "🧸"),
+            DefaultChore("Set the table", "לערוך את השולחן", 30, "🍽️"),
+            DefaultChore("Do the dishes", "לשטוף כלים", 50, "🧼"),
+            DefaultChore("Take out the trash", "להוציא את הזבל", 40, "🗑️"),
+            DefaultChore("Vacuum the room", "לשאוב את החדר", 100, "🧹")
+        )
     }
 }

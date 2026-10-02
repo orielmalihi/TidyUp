@@ -221,3 +221,6 @@ This project is provided as-is for family use.
 TidyUp was created to gamify household chores and encourage kids to take responsibility while having fun in a competitive, supportive environment.
 
 **Happy cleaning! 🧹**
+
+## Build
+Open in Android Studio (AGP 9.2, compileSdk 36.1) or run `gradlew :app:assembleDebug` / `gradlew :app:testDebugUnitTest`. Uses KSP for Room and Hilt.
