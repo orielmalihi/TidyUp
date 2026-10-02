@@ -1,5 +1,7 @@
 package com.example.choreapp
 
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,10 +14,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.choreapp.ui.ChoreAppNavigation
 import com.example.choreapp.ui.theme.ChoreAppTheme
+import com.example.choreapp.ui.AppLanguage
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguage.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

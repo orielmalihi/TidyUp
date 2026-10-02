@@ -1,6 +1,8 @@
 package com.example.choreapp.ui
 
-import android.content.res.Configuration
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,16 +10,12 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -48,33 +46,27 @@ sealed class Screen(val route: String) {
 fun ChoreAppNavigation() {
     val viewModel: ChoreAppViewModel = hiltViewModel()
     val settings by viewModel.settings.collectAsState()
+    val context = LocalContext.current
+    val activity = context.findActivity()
 
     // Wait for the saved language so the first frame is never in the wrong one.
     val language = settings?.language ?: return
-    LocalizedContent(language) {
-        AppNavHost(viewModel, language)
+    val applied = LocalConfiguration.current.locales[0].language
+    if (applied != Locale.forLanguageTag(language).language) {
+        // The activity's own resources must be rebuilt for the new language.
+        LaunchedEffect(language) {
+            AppLanguage.save(context, language)
+            activity?.recreate()
+        }
+        return
     }
+    AppNavHost(viewModel, language)
 }
 
-@Composable
-private fun LocalizedContent(language: String, content: @Composable () -> Unit) {
-    val base = LocalContext.current
-    val localized = remember(base, language) {
-        val locale = Locale.forLanguageTag(language)
-        val config = Configuration(base.resources.configuration).apply {
-            setLocale(locale)
-            setLayoutDirection(locale)
-        }
-        base.createConfigurationContext(config)
-    }
-    CompositionLocalProvider(
-        LocalContext provides localized,
-        LocalResources provides localized.resources,
-        LocalConfiguration provides localized.resources.configuration,
-        LocalLayoutDirection provides if (language == "he") LayoutDirection.Rtl else LayoutDirection.Ltr
-    ) {
-        content()
-    }
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 @Composable
