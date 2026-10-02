@@ -95,6 +95,19 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Force specific versions to avoid transitive dependency conflicts
+    constraints {
+        implementation("androidx.core:core:1.10.1") {
+            because("Required for API 36 compatibility")
+        }
+        implementation("androidx.core:core-ktx:1.10.1") {
+            because("Required for API 36 compatibility")
+        }
+        implementation("androidx.lifecycle:lifecycle-runtime-compose-android:2.7.0") {
+            because("Required for API 36 compatibility")
+        }
+    }
 }
 
 kapt {
