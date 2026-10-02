@@ -107,6 +107,7 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                     onClaim = viewModel::claimChore,
                     onDone = viewModel::submitChore,
                     onPutBack = viewModel::unclaimChore,
+                    onAddChore = viewModel::addChore,
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -152,6 +153,7 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                 ChoreManagementScreen(
                     chores = chores,
                     onAddChore = viewModel::addChore,
+                    onUpdateChore = viewModel::updateChore,
                     onDeleteChore = viewModel::deleteChore,
                     onBack = { navController.popBackStack() }
                 )

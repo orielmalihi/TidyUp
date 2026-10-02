@@ -134,6 +134,10 @@ class ChoreAppViewModel @Inject constructor(
         viewModelScope.launch { choreRepository.addChore(chore) }
     }
 
+    fun updateChore(chore: Chore) {
+        viewModelScope.launch { choreRepository.updateChore(chore) }
+    }
+
     fun deleteChore(chore: Chore) {
         viewModelScope.launch { choreRepository.deleteChore(chore) }
     }

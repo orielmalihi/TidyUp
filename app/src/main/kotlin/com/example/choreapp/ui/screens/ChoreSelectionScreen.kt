@@ -10,14 +10,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -58,14 +62,23 @@ fun ChoreSelectionScreen(
     onClaim: (choreId: String, cleanerId: String) -> Unit,
     onDone: (instanceId: String) -> Unit,
     onPutBack: (instanceId: String) -> Unit,
+    onAddChore: (Chore) -> Unit,
     onBack: () -> Unit
 ) {
-    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
-    val kid = cleaners.find { it.id == selectedId } ?: cleaners.firstOrNull()
+    var pendingChoreId by rememberSaveable { mutableStateOf<String?>(null) }
+    var lastKidId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showAddChore by remember { mutableStateOf(false) }
 
-    // The whole screen takes on the colour of the kid who is choosing.
-    val kidColor = kid?.let { ColorUtils.hexToColor(it.color) } ?: Cream
+    // The screen takes on the colour of the kid who took a chore most recently.
+    val kidColor = cleaners.find { it.id == lastKidId }?.let { ColorUtils.hexToColor(it.color) } ?: Cream
     val background by animateColorAsState(lerp(Cream, kidColor, 0.4f), tween(400), label = "kidBackground")
+
+    val kidById = cleaners.associateBy { it.id }
+    val choreById = chores.associateBy { it.id }
+    val inProgress = instances.filter { it.status == ChoreStatus.SELECTED }
+    val waiting = instances.filter { it.status == ChoreStatus.SUBMITTED }
+    val done = instances.filter { it.status == ChoreStatus.APPROVED }
+    val available = ChoreBoard.available(chores, instances)
 
     Column(
         modifier = Modifier
@@ -75,7 +88,7 @@ fun ChoreSelectionScreen(
     ) {
         ScreenHeader(title = stringResource(R.string.chore_selection_title), onBack = onBack)
 
-        if (kid == null) {
+        if (cleaners.isEmpty()) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -94,48 +107,29 @@ fun ChoreSelectionScreen(
             return@Column
         }
 
-        Text(
-            text = stringResource(R.string.who_is_tidying),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(bottom = 12.dp)
-        ) {
-            items(cleaners, key = { it.id }) { c ->
-                KidChip(cleaner = c, selected = c.id == kid.id, onClick = { selectedId = c.id })
-            }
-        }
-
-        val mine = ChoreBoard.forKid(instances, kid.id, ChoreStatus.SELECTED)
-        val waiting = ChoreBoard.forKid(instances, kid.id, ChoreStatus.SUBMITTED)
-        val done = ChoreBoard.forKid(instances, kid.id, ChoreStatus.APPROVED)
-        val available = ChoreBoard.available(chores, instances)
-        val choreById = chores.associateBy { it.id }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (mine.isNotEmpty()) {
+            if (inProgress.isNotEmpty()) {
                 item { SectionTitle(stringResource(R.string.working_on_it)) }
-                items(mine, key = { "mine-${it.id}" }) { instance ->
-                    choreById[instance.choreId]?.let { chore ->
-                        ChoreCard(
-                            chore = chore,
-                            container = Color.White,
-                            modifier = Modifier.animateItem(),
-                            actions = {
-                                TextButton(onClick = { onPutBack(instance.id) }) {
-                                    Text(stringResource(R.string.put_back))
-                                }
-                                Button(onClick = { onDone(instance.id) }) {
-                                    Text(stringResource(R.string.im_done))
-                                }
+                items(inProgress, key = { "mine-${it.id}" }) { instance ->
+                    val chore = choreById[instance.choreId] ?: return@items
+                    val kid = kidById[instance.cleanerId]
+                    ChoreCard(
+                        chore = chore,
+                        owner = kid,
+                        container = Color.White,
+                        modifier = Modifier.animateItem(),
+                        actions = {
+                            TextButton(onClick = { onPutBack(instance.id) }) {
+                                Text(stringResource(R.string.put_back))
                             }
-                        )
-                    }
+                            Button(onClick = { onDone(instance.id) }) {
+                                Text(stringResource(R.string.im_done))
+                            }
+                        }
+                    )
                 }
             }
 
@@ -143,7 +137,7 @@ fun ChoreSelectionScreen(
                 item { SectionTitle(stringResource(R.string.waiting_for_parent)) }
                 items(waiting, key = { "wait-${it.id}" }) { instance ->
                     choreById[instance.choreId]?.let {
-                        ChoreCard(chore = it, container = Color(0xFFFFF3B0), modifier = Modifier.animateItem(), trailing = "⏳")
+                        ChoreCard(it, kidById[instance.cleanerId], Color(0xFFFFF3B0), Modifier.animateItem(), trailing = "⏳")
                     }
                 }
             }
@@ -164,23 +158,89 @@ fun ChoreSelectionScreen(
             items(available, key = { "free-${it.id}" }) { chore ->
                 ChoreCard(
                     chore = chore,
+                    owner = null,
                     container = Color.White,
                     modifier = Modifier
                         .animateItem()
-                        .clickable { onClaim(chore.id, kid.id) }
+                        .clickable { pendingChoreId = chore.id }
                 )
+            }
+            item {
+                OutlinedButton(
+                    onClick = { showAddChore = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                ) { Text("➕  " + stringResource(R.string.add_chore)) }
             }
 
             if (done.isNotEmpty()) {
                 item { SectionTitle(stringResource(R.string.done_today)) }
                 items(done, key = { "done-${it.id}" }) { instance ->
                     choreById[instance.choreId]?.let {
-                        ChoreCard(chore = it, container = Color(0xFFC8E6C9), modifier = Modifier.animateItem(), trailing = "✅")
+                        ChoreCard(it, kidById[instance.cleanerId], Color(0xFFC8E6C9), Modifier.animateItem(), trailing = "✅")
                     }
                 }
             }
         }
     }
+
+    choreById[pendingChoreId]?.let { chore ->
+        KidPickerDialog(
+            chore = chore,
+            cleaners = cleaners,
+            onPick = { kid ->
+                lastKidId = kid.id
+                onClaim(chore.id, kid.id)
+                pendingChoreId = null
+            },
+            onCancel = { pendingChoreId = null }
+        )
+    }
+    if (showAddChore) {
+        ChoreDialog(
+            initial = null,
+            onConfirm = {
+                onAddChore(it)
+                showAddChore = false
+            },
+            onCancel = { showAddChore = false }
+        )
+    }
+}
+
+@Composable
+private fun KidPickerDialog(chore: Chore, cleaners: List<Cleaner>, onPick: (Cleaner) -> Unit, onCancel: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("${chore.icon}  ${chore.name}") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.who_takes_it), style = MaterialTheme.typography.titleMedium)
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 320.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(cleaners, key = { it.id }) { kid ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(ColorUtils.hexToColor(kid.color).copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                                .clickable { onPick(kid) }
+                                .padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            EmojiBadge(kid.avatar, Color.White, size = 44, fontSize = 24)
+                            Text(kid.name, style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) } }
+    )
 }
 
 @Composable
@@ -193,51 +253,33 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun KidChip(cleaner: Cleaner, selected: Boolean, onClick: () -> Unit) {
-    val color = ColorUtils.hexToColor(cleaner.color)
-    val scale by animateFloatAsState(if (selected) 1.12f else 1f, label = "chipScale")
-    Column(
-        modifier = Modifier
-            .scale(scale)
-            .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .background(color.copy(alpha = if (selected) 0.9f else 0.4f), RoundedCornerShape(50))
-                .padding(4.dp)
-        ) {
-            EmojiBadge(cleaner.avatar, Color.White, size = 56, fontSize = 30)
-        }
-        Text(
-            text = cleaner.name,
-            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Normal,
-            fontSize = 14.sp,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
 private fun ChoreCard(
     chore: Chore,
+    owner: Cleaner?,
     container: Color,
     modifier: Modifier = Modifier,
     trailing: String? = null,
     actions: (@Composable () -> Unit)? = null
 ) {
+    val ownerColor = owner?.let { ColorUtils.hexToColor(it.color) }
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = container),
-        border = BorderStroke(1.dp, Color.Black.copy(alpha = 0.06f))
+        border = BorderStroke(if (ownerColor != null) 3.dp else 1.dp, ownerColor ?: Color.Black.copy(alpha = 0.06f))
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 EmojiBadge(chore.icon, Color(0xFFFFD166), size = 52, fontSize = 28)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(chore.name, style = MaterialTheme.typography.titleMedium)
-                    if (chore.description.isNotBlank()) {
+                    if (owner != null) {
+                        Text(
+                            "${owner.avatar} " + stringResource(R.string.chore_taken_by, owner.name),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    } else if (chore.description.isNotBlank()) {
                         Text(chore.description, fontSize = 13.sp, color = Color.Gray, maxLines = 1)
                     }
                 }

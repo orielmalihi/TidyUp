@@ -49,4 +49,7 @@
     <string name="points_after_approval">הנקודות מגיעות כשהורה מאשר!</string>
     <string name="great">מעולה!</string>
     <string name="delete_confirm">למחוק את %1$s?</string>
+    <string name="edit_chore">עריכת משימה</string>
+    <string name="who_takes_it">מי לוקח את המשימה?</string>
+    <string name="chore_taken_by">%1$s על זה!</string>
 </resources>

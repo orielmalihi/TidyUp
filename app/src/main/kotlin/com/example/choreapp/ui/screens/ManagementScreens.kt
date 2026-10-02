@@ -124,10 +124,12 @@ fun CleanerManagementScreen(
 fun ChoreManagementScreen(
     chores: List<Chore>,
     onAddChore: (Chore) -> Unit,
+    onUpdateChore: (Chore) -> Unit,
     onDeleteChore: (Chore) -> Unit,
     onBack: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    var toEdit by remember { mutableStateOf<Chore?>(null) }
     var toDelete by remember { mutableStateOf<Chore?>(null) }
 
     Column(
@@ -157,6 +159,9 @@ fun ChoreManagementScreen(
                             Text(chore.name, style = MaterialTheme.typography.titleMedium)
                             Text("⭐ ${chore.points}", fontWeight = FontWeight.SemiBold, color = Color(0xFFE08A00))
                         }
+                        TextButton(onClick = { toEdit = chore }) {
+                            Text(stringResource(R.string.edit))
+                        }
                         TextButton(onClick = { toDelete = chore }) {
                             Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                         }
@@ -168,12 +173,23 @@ fun ChoreManagementScreen(
     }
 
     if (showAddDialog) {
-        AddChoreDialog(
+        ChoreDialog(
+            initial = null,
             onConfirm = { chore ->
                 onAddChore(chore)
                 showAddDialog = false
             },
             onCancel = { showAddDialog = false }
+        )
+    }
+    toEdit?.let { chore ->
+        ChoreDialog(
+            initial = chore,
+            onConfirm = {
+                onUpdateChore(it)
+                toEdit = null
+            },
+            onCancel = { toEdit = null }
         )
     }
     toDelete?.let { chore ->
@@ -282,16 +298,16 @@ private fun AddCleanerDialog(onConfirm: (Cleaner) -> Unit, onCancel: () -> Unit)
 }
 
 @Composable
-private fun AddChoreDialog(onConfirm: (Chore) -> Unit, onCancel: () -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var points by remember { mutableStateOf("") }
-    var icon by remember { mutableStateOf(choreIcons.first()) }
+fun ChoreDialog(initial: Chore?, onConfirm: (Chore) -> Unit, onCancel: () -> Unit) {
+    var name by remember { mutableStateOf(initial?.name.orEmpty()) }
+    var description by remember { mutableStateOf(initial?.description.orEmpty()) }
+    var points by remember { mutableStateOf(initial?.points?.toString().orEmpty()) }
+    var icon by remember { mutableStateOf(initial?.icon ?: choreIcons.first()) }
     var showError by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text(stringResource(R.string.add_chore)) },
+        title = { Text(stringResource(if (initial == null) R.string.add_chore else R.string.edit_chore)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
@@ -329,7 +345,8 @@ private fun AddChoreDialog(onConfirm: (Chore) -> Unit, onCancel: () -> Unit) {
                 onClick = {
                     val value = points.toIntOrNull() ?: 0
                     if (value in 10..100) {
-                        onConfirm(Chore(name = name.trim(), description = description.trim(), points = value, icon = icon))
+                        val edited = Chore(name = name.trim(), description = description.trim(), points = value, icon = icon)
+                        onConfirm(initial?.copy(name = edited.name, description = edited.description, points = value, icon = icon) ?: edited)
                     } else {
                         showError = true
                     }
