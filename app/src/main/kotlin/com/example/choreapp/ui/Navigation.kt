@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -68,6 +69,7 @@ private fun LocalizedContent(language: String, content: @Composable () -> Unit) 
     }
     CompositionLocalProvider(
         LocalContext provides localized,
+        LocalResources provides localized.resources,
         LocalConfiguration provides localized.resources.configuration,
         LocalLayoutDirection provides if (language == "he") LayoutDirection.Rtl else LayoutDirection.Ltr
     ) {
