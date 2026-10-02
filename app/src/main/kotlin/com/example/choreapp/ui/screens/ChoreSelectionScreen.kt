@@ -201,7 +201,7 @@ fun ChoreSelectionScreen(
         ChoreDialog(
             initial = null,
             onConfirm = {
-                onAddChore(it)
+                it.forEach(onAddChore)
                 showAddChore = false
             },
             onCancel = { showAddChore = false }

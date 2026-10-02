@@ -2,15 +2,15 @@
 <resources>
     <string name="app_name">TidyUp</string>
     <string name="main_screen_title">Today\'s Points</string>
-    <string name="chore_selection_title">Pick a Chore</string>
+    <string name="chore_selection_title">Chores</string>
     <string name="all_time_title">All-Time Stars</string>
     <string name="settings_title">Settings</string>
     <string name="language_label">Language</string>
     <string name="english">English</string>
     <string name="hebrew">עברית</string>
-    <string name="add_cleaner">Add Cleaner</string>
+    <string name="add_cleaner">Add Hero</string>
     <string name="add_chore">Add Chore</string>
-    <string name="manage_cleaners">Cleaners</string>
+    <string name="manage_cleaners">Heroes</string>
     <string name="manage_chores">Chores</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
@@ -21,7 +21,7 @@
     <string name="reject">Reject</string>
     <string name="points">Points</string>
     <string name="total_points">Total Points</string>
-    <string name="cleaner_name">Cleaner Name</string>
+    <string name="cleaner_name">Hero Name</string>
     <string name="chore_name">Chore Name</string>
     <string name="chore_description">Description</string>
     <string name="points_value">Points Value (10-100)</string>
@@ -31,8 +31,8 @@
     <string name="select_icon">Pick an icon</string>
     <string name="no_description">No description</string>
     <string name="default_chore_description">Let\'s tidy up!</string>
-    <string name="pick_a_chore">Pick a chore!</string>
-    <string name="no_kids_yet">No cleaners yet!\nAdd your first one in Settings ⚙️</string>
+    <string name="pick_a_chore">Chores</string>
+    <string name="no_kids_yet">No heroes yet!\nAdd your first one in Settings ⚙️</string>
     <string name="who_is_tidying">Who is tidying?</string>
     <string name="working_on_it">I\'m on it</string>
     <string name="available_chores">Available chores</string>
@@ -52,4 +52,6 @@
     <string name="edit_chore">Edit chore</string>
     <string name="who_takes_it">Who is taking this chore?</string>
     <string name="chore_taken_by">%1$s is on it!</string>
+    <string name="how_many">How many times? (1-10)</string>
+    <string name="how_many_hint">Creates separate numbered chores, e.g. Clean room 1, 2, 3</string>
 </resources>

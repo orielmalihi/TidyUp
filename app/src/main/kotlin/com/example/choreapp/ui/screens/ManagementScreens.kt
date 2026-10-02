@@ -175,8 +175,8 @@ fun ChoreManagementScreen(
     if (showAddDialog) {
         ChoreDialog(
             initial = null,
-            onConfirm = { chore ->
-                onAddChore(chore)
+            onConfirm = { newChores ->
+                newChores.forEach(onAddChore)
                 showAddDialog = false
             },
             onCancel = { showAddDialog = false }
@@ -186,7 +186,7 @@ fun ChoreManagementScreen(
         ChoreDialog(
             initial = chore,
             onConfirm = {
-                onUpdateChore(it)
+                onUpdateChore(it.first())
                 toEdit = null
             },
             onCancel = { toEdit = null }
@@ -298,7 +298,8 @@ private fun AddCleanerDialog(onConfirm: (Cleaner) -> Unit, onCancel: () -> Unit)
 }
 
 @Composable
-fun ChoreDialog(initial: Chore?, onConfirm: (Chore) -> Unit, onCancel: () -> Unit) {
+fun ChoreDialog(initial: Chore?, onConfirm: (List<Chore>) -> Unit, onCancel: () -> Unit) {
+    var quantity by remember { mutableStateOf("1") }
     var name by remember { mutableStateOf(initial?.name.orEmpty()) }
     var description by remember { mutableStateOf(initial?.description.orEmpty()) }
     var points by remember { mutableStateOf(initial?.points?.toString().orEmpty()) }
@@ -332,6 +333,16 @@ fun ChoreDialog(initial: Chore?, onConfirm: (Chore) -> Unit, onCancel: () -> Uni
                     isError = showError,
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (initial == null) {
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = { if (it.length <= 2 && it.all(Char::isDigit)) quantity = it },
+                        label = { Text(stringResource(R.string.how_many)) },
+                        supportingText = { Text(stringResource(R.string.how_many_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
                 if (showError) {
                     Text(stringResource(R.string.points_error), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                 }
@@ -344,9 +355,18 @@ fun ChoreDialog(initial: Chore?, onConfirm: (Chore) -> Unit, onCancel: () -> Uni
                 enabled = name.isNotBlank(),
                 onClick = {
                     val value = points.toIntOrNull() ?: 0
+                    val count = (quantity.toIntOrNull() ?: 1).coerceIn(1, 10)
                     if (value in 10..100) {
-                        val edited = Chore(name = name.trim(), description = description.trim(), points = value, icon = icon)
-                        onConfirm(initial?.copy(name = edited.name, description = edited.description, points = value, icon = icon) ?: edited)
+                        if (initial != null) {
+                            onConfirm(listOf(initial.copy(name = name.trim(), description = description.trim(), points = value, icon = icon)))
+                        } else {
+                            onConfirm(List(count) { i ->
+                                Chore(
+                                    name = if (count == 1) name.trim() else "${name.trim()} ${i + 1}",
+                                    description = description.trim(), points = value, icon = icon
+                                )
+                            })
+                        }
                     } else {
                         showError = true
                     }

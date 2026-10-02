@@ -2,15 +2,15 @@
 <resources>
     <string name="app_name">סידור הבית</string>
     <string name="main_screen_title">נקודות היום</string>
-    <string name="chore_selection_title">בחרו משימה</string>
+    <string name="chore_selection_title">משימות</string>
     <string name="all_time_title">כוכבי כל הזמנים</string>
     <string name="settings_title">הגדרות</string>
     <string name="language_label">שפה</string>
     <string name="english">English</string>
     <string name="hebrew">עברית</string>
-    <string name="add_cleaner">הוספת מנקה</string>
+    <string name="add_cleaner">הוספת גיבור</string>
     <string name="add_chore">הוספת משימה</string>
-    <string name="manage_cleaners">מנקים</string>
+    <string name="manage_cleaners">גיבורים</string>
     <string name="manage_chores">משימות</string>
     <string name="edit">עריכה</string>
     <string name="delete">מחיקה</string>
@@ -21,7 +21,7 @@
     <string name="reject">דחייה</string>
     <string name="points">נקודות</string>
     <string name="total_points">סה״כ נקודות</string>
-    <string name="cleaner_name">שם המנקה</string>
+    <string name="cleaner_name">שם הגיבור</string>
     <string name="chore_name">שם המשימה</string>
     <string name="chore_description">תיאור</string>
     <string name="points_value">ערך בנקודות (10-100)</string>
@@ -31,8 +31,8 @@
     <string name="select_icon">בחרו סמל</string>
     <string name="no_description">ללא תיאור</string>
     <string name="default_chore_description">בואו נסדר!</string>
-    <string name="pick_a_chore">בחרו משימה!</string>
-    <string name="no_kids_yet">עוד אין מנקים!\nאפשר להוסיף בהגדרות ⚙️</string>
+    <string name="pick_a_chore">משימות</string>
+    <string name="no_kids_yet">עוד אין גיבורים!\nאפשר להוסיף בהגדרות ⚙️</string>
     <string name="who_is_tidying">מי מסדר?</string>
     <string name="working_on_it">אני על זה</string>
     <string name="available_chores">משימות פנויות</string>
@@ -52,4 +52,6 @@
     <string name="edit_chore">עריכת משימה</string>
     <string name="who_takes_it">מי לוקח את המשימה?</string>
     <string name="chore_taken_by">%1$s על זה!</string>
+    <string name="how_many">כמה פעמים? (1-10)</string>
+    <string name="how_many_hint">יוצר משימות נפרדות ממוספרות, למשל ניקיון חדר 1, 2, 3</string>
 </resources>
