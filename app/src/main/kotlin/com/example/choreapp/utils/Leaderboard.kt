@@ -14,6 +14,9 @@ data class Celebration(val kidName: String, val message: String, val points: Int
 object Leaderboard {
     private val order = compareByDescending<ScoreEntry> { it.points }.thenBy { it.cleaner.name.lowercase() }
 
+    // Competition ranking: equal points share a rank, so ties get the same medal.
+    fun rank(entries: List<ScoreEntry>, entry: ScoreEntry): Int = 1 + entries.count { it.points > entry.points }
+
     fun daily(cleaners: List<Cleaner>, scores: List<DailyScore>): List<ScoreEntry> =
         cleaners
             .map { c -> ScoreEntry(c, scores.filter { it.cleanerId == c.id }.sumOf { it.points }) }

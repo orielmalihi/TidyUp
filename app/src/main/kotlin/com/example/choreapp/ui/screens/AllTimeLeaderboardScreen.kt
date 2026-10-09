@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -54,9 +54,9 @@ fun AllTimeLeaderboardScreen(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            itemsIndexed(entries, key = { _, e -> e.cleaner.id }) { index, entry ->
+            items(entries, key = { it.cleaner.id }) { entry ->
                 AllTimeScoreCard(
-                    rank = index + 1,
+                    rank = Leaderboard.rank(entries, entry),
                     entry = entry,
                     hasCrown = entry.cleaner.id in crowned,
                     modifier = Modifier.animateItem()

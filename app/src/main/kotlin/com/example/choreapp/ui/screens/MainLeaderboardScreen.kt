@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import com.example.choreapp.utils.Leaderboard
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -78,7 +79,7 @@ fun MainLeaderboardScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(entries, key = { it.cleaner.id }) { entry ->
-                    val rank = entries.indexOf(entry)
+                    val rank = Leaderboard.rank(entries, entry) - 1
                     CleanerScoreCard(
                         entry = entry,
                         medal = if (entry.points > 0) medals.getOrNull(rank) else null,

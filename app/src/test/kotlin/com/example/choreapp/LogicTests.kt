@@ -79,6 +79,16 @@ class LeaderboardTest {
     }
 }
 
+class RankTest {
+    private fun e(id: String, p: Int) = ScoreEntry(Cleaner(id, id, "😊", "#FF0000", 0L), p)
+
+    @Test
+    fun tiedPointsShareRank() {
+        val board = listOf(e("a", 50), e("b", 50), e("c", 30), e("d", 10))
+        assertEquals(listOf(1, 1, 3, 4), board.map { Leaderboard.rank(board, it) })
+    }
+}
+
 class ChoreBoardTest {
     private val sweep = Chore(id = "c1", name = "Sweep", points = 20)
     private val dishes = Chore(id = "c2", name = "Dishes", points = 50)
