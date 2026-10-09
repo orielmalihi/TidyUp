@@ -42,10 +42,8 @@ private val medals = listOf("🥇", "🥈", "🥉")
 @Composable
 fun MainLeaderboardScreen(
     entries: List<ScoreEntry>,
-    onNavigateToChores: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToAllTime: () -> Unit,
-    onNavigateToParentDashboard: () -> Unit
+    onNavigateToAllTime: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -54,7 +52,6 @@ fun MainLeaderboardScreen(
     ) {
         ScreenHeader(title = stringResource(R.string.main_screen_title)) {
             IconButton(onClick = onNavigateToAllTime) { Text("👑", fontSize = 26.sp) }
-            IconButton(onClick = onNavigateToParentDashboard) { Text("👨‍👩‍👧", fontSize = 26.sp) }
             IconButton(onClick = onNavigateToSettings) { Text("⚙️", fontSize = 26.sp) }
         }
 
@@ -90,17 +87,6 @@ fun MainLeaderboardScreen(
                     )
                 }
             }
-        }
-
-        Button(
-            onClick = onNavigateToChores,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .padding(top = 8.dp),
-            shape = RoundedCornerShape(30.dp)
-        ) {
-            Text("🧽  " + stringResource(R.string.pick_a_chore), fontSize = 20.sp)
         }
     }
 }

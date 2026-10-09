@@ -39,7 +39,7 @@ fun ParentDashboardScreen(
     cleaners: List<Cleaner>,
     onApprove: (String) -> Unit,
     onReject: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: (() -> Unit)? = null
 ) {
     // Entries whose chore or hero was deleted can't be reviewed, so they must not be counted.
     val reviewable = submittedChores.filter { s -> chores.any { it.id == s.choreId } && cleaners.any { it.id == s.cleanerId } }

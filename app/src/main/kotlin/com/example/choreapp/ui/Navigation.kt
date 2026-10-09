@@ -7,6 +7,18 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
+import com.example.choreapp.R
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -34,10 +46,8 @@ import java.util.Locale
 
 sealed class Screen(val route: String) {
     object Main : Screen("main")
-    object Chores : Screen("chores")
     object AllTime : Screen("all_time")
     object Settings : Screen("settings")
-    object ParentDashboard : Screen("parent_dashboard")
     object CleanerManagement : Screen("cleaner_management")
     object ChoreManagement : Screen("chore_management")
 }
@@ -69,6 +79,48 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
+private const val TAB_CHORES = 0
+private const val TAB_POINTS = 1
+private const val TAB_PARENTS = 2
+
+// Chores, today's points and the parent corner sit side by side; swiping or tapping a tab moves between them.
+@Composable
+private fun MainTabs(
+    chorePage: @Composable () -> Unit,
+    pointsPage: @Composable () -> Unit,
+    parentPage: @Composable () -> Unit
+) {
+    val pagerState = rememberPagerState(initialPage = TAB_POINTS) { 3 }
+    val scope = rememberCoroutineScope()
+    val tabs = listOf(
+        TAB_CHORES to "🧽  " + stringResource(R.string.manage_chores),
+        TAB_POINTS to "🏆  " + stringResource(R.string.points),
+        TAB_PARENTS to "👨‍👩‍👧  " + stringResource(R.string.tab_parents)
+    )
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
+            when (page) {
+                TAB_CHORES -> chorePage()
+                TAB_POINTS -> pointsPage()
+                else -> parentPage()
+            }
+        }
+        TabRow(
+            selectedTabIndex = pagerState.currentPage,
+            containerColor = Color.Transparent
+        ) {
+            tabs.forEach { (index, label) ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    text = { Text(label, maxLines = 1, fontSize = 14.sp) }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
     val navController = rememberNavController()
@@ -90,25 +142,35 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
             popExitTransition = { fadeOut(tween(150)) }
         ) {
             composable(Screen.Main.route) {
-                MainLeaderboardScreen(
-                    entries = todayBoard,
-                    onNavigateToChores = { navController.navigate(Screen.Chores.route) },
-                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
-                    onNavigateToAllTime = { navController.navigate(Screen.AllTime.route) },
-                    onNavigateToParentDashboard = { navController.navigate(Screen.ParentDashboard.route) }
-                )
-            }
-
-            composable(Screen.Chores.route) {
-                ChoreSelectionScreen(
-                    cleaners = cleaners,
-                    chores = chores,
-                    instances = instances,
-                    onClaim = viewModel::claimChore,
-                    onDone = viewModel::submitChore,
-                    onPutBack = viewModel::unclaimChore,
-                    onAddChore = viewModel::addChore,
-                    onBack = { navController.popBackStack() }
+                MainTabs(
+                    chorePage = {
+                        ChoreSelectionScreen(
+                            cleaners = cleaners,
+                            chores = chores,
+                            instances = instances,
+                            onClaim = viewModel::claimChore,
+                            onDone = viewModel::submitChore,
+                            onPutBack = viewModel::unclaimChore,
+                            onAddChore = viewModel::addChore,
+                            onDeleteAll = viewModel::deleteAllChores
+                        )
+                    },
+                    pointsPage = {
+                        MainLeaderboardScreen(
+                            entries = todayBoard,
+                            onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                            onNavigateToAllTime = { navController.navigate(Screen.AllTime.route) }
+                        )
+                    },
+                    parentPage = {
+                        ParentDashboardScreen(
+                            submittedChores = instances.filter { it.status == ChoreStatus.SUBMITTED },
+                            chores = chores,
+                            cleaners = cleaners,
+                            onApprove = viewModel::approveChore,
+                            onReject = viewModel::rejectChore
+                        )
+                    }
                 )
             }
 
@@ -125,17 +187,6 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                     onLanguageChange = viewModel::updateLanguage,
                     onNavigateToCleanerManagement = { navController.navigate(Screen.CleanerManagement.route) },
                     onNavigateToChoreManagement = { navController.navigate(Screen.ChoreManagement.route) },
-                    onBack = { navController.popBackStack() }
-                )
-            }
-
-            composable(Screen.ParentDashboard.route) {
-                ParentDashboardScreen(
-                    submittedChores = instances.filter { it.status == ChoreStatus.SUBMITTED },
-                    chores = chores,
-                    cleaners = cleaners,
-                    onApprove = viewModel::approveChore,
-                    onReject = viewModel::rejectChore,
                     onBack = { navController.popBackStack() }
                 )
             }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,11 +64,12 @@ fun ChoreSelectionScreen(
     onDone: (instanceId: String) -> Unit,
     onPutBack: (instanceId: String) -> Unit,
     onAddChore: (Chore) -> Unit,
-    onBack: () -> Unit
+    onDeleteAll: () -> Unit
 ) {
     var pendingChoreId by rememberSaveable { mutableStateOf<String?>(null) }
     var lastKidId by rememberSaveable { mutableStateOf<String?>(null) }
     var showAddChore by remember { mutableStateOf(false) }
+    var showRemoveAll by remember { mutableStateOf(false) }
 
     // The screen takes on the colour of the kid who took a chore most recently.
     val kidColor = cleaners.find { it.id == lastKidId }?.let { ColorUtils.hexToColor(it.color) } ?: Cream
@@ -86,7 +88,7 @@ fun ChoreSelectionScreen(
             .background(background)
             .padding(16.dp)
     ) {
-        ScreenHeader(title = stringResource(R.string.chore_selection_title), onBack = onBack)
+        ScreenHeader(title = stringResource(R.string.chore_selection_title))
 
         if (cleaners.isEmpty()) {
             Column(
@@ -173,6 +175,17 @@ fun ChoreSelectionScreen(
                         .height(52.dp)
                 ) { Text("➕  " + stringResource(R.string.add_chore)) }
             }
+            if (chores.isNotEmpty()) {
+                item {
+                    OutlinedButton(
+                        onClick = { showRemoveAll = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) { Text("🗑️  " + stringResource(R.string.remove_all)) }
+                }
+            }
 
             if (done.isNotEmpty()) {
                 item { SectionTitle(stringResource(R.string.done_today)) }
@@ -195,6 +208,15 @@ fun ChoreSelectionScreen(
                 pendingChoreId = null
             },
             onCancel = { pendingChoreId = null }
+        )
+    }
+    if (showRemoveAll) {
+        RemoveAllChoresDialog(
+            onConfirm = {
+                onDeleteAll()
+                showRemoveAll = false
+            },
+            onCancel = { showRemoveAll = false }
         )
     }
     if (showAddChore) {

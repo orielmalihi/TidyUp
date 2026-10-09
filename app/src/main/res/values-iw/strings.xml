@@ -57,4 +57,5 @@
     <string name="sounds">צלילים</string>
     <string name="remove_all">מחיקת הכול</string>
     <string name="remove_all_confirm">למחוק את כל המשימות?</string>
+    <string name="tab_parents">הורים</string>
 </resources>

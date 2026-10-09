@@ -197,21 +197,12 @@ fun ChoreManagementScreen(
         )
     }
     if (showRemoveAll) {
-        AlertDialog(
-            onDismissRequest = { showRemoveAll = false },
-            title = { Text(stringResource(R.string.remove_all_confirm)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onDeleteAll()
-                        showRemoveAll = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) { Text(stringResource(R.string.remove_all)) }
+        RemoveAllChoresDialog(
+            onConfirm = {
+                onDeleteAll()
+                showRemoveAll = false
             },
-            dismissButton = {
-                TextButton(onClick = { showRemoveAll = false }) { Text(stringResource(R.string.cancel)) }
-            }
+            onCancel = { showRemoveAll = false }
         )
     }
     toEdit?.let { chore ->
@@ -234,6 +225,23 @@ fun ChoreManagementScreen(
             onCancel = { toDelete = null }
         )
     }
+}
+
+@Composable
+fun RemoveAllChoresDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.remove_all_confirm)) },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) { Text(stringResource(R.string.remove_all)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
+        }
+    )
 }
 
 @Composable
@@ -333,8 +341,7 @@ private fun AddCleanerDialog(onConfirm: (Cleaner) -> Unit, onCancel: () -> Unit)
 fun ChoreDialog(initial: Chore?, onConfirm: (List<Chore>) -> Unit, onCancel: () -> Unit) {
     var quantity by remember { mutableStateOf("1") }
     var name by remember { mutableStateOf(initial?.name.orEmpty()) }
-    var description by remember { mutableStateOf(initial?.description.orEmpty()) }
-    var points by remember { mutableStateOf(initial?.points?.toString().orEmpty()) }
+    var points by remember { mutableStateOf((initial?.points ?: 10).toString()) }
     var icon by remember { mutableStateOf(initial?.icon ?: choreIcons.first()) }
     var showError by remember { mutableStateOf(false) }
 
@@ -347,13 +354,6 @@ fun ChoreDialog(initial: Chore?, onConfirm: (List<Chore>) -> Unit, onCancel: () 
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.chore_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text(stringResource(R.string.chore_description)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -390,12 +390,12 @@ fun ChoreDialog(initial: Chore?, onConfirm: (List<Chore>) -> Unit, onCancel: () 
                     val count = (quantity.toIntOrNull() ?: 1).coerceIn(1, 10)
                     if (value in 10..100) {
                         if (initial != null) {
-                            onConfirm(listOf(initial.copy(name = name.trim(), description = description.trim(), points = value, icon = icon)))
+                            onConfirm(listOf(initial.copy(name = name.trim(), points = value, icon = icon)))
                         } else {
                             onConfirm(List(count) { i ->
                                 Chore(
                                     name = if (count == 1) name.trim() else "${name.trim()} ${i + 1}",
-                                    description = description.trim(), points = value, icon = icon
+                                    points = value, icon = icon
                                 )
                             })
                         }
