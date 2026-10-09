@@ -1,5 +1,8 @@
 package com.example.choreapp.ui.screens
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +40,7 @@ fun SettingsScreen(
     onLanguageChange: (String) -> Unit,
     onNavigateToCleanerManagement: () -> Unit,
     onNavigateToChoreManagement: () -> Unit,
+    onRestoreFile: (String, (Boolean) -> Unit) -> Unit,
     onBack: () -> Unit
 ) {
     Column(
@@ -74,6 +78,27 @@ fun SettingsScreen(
                 })
             }
         }
+
+        val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                val text = runCatching {
+                    context.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+                }.getOrNull()
+                if (text == null) {
+                    Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_LONG).show()
+                } else {
+                    onRestoreFile(text) { ok ->
+                        Toast.makeText(context, if (ok) R.string.restore_done else R.string.restore_failed, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+        OutlinedButton(
+            onClick = { picker.launch(arrayOf("*/*")) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+        ) { Text("💾  " + stringResource(R.string.restore_from_file), fontSize = 18.sp) }
 
         Button(
             onClick = onNavigateToCleanerManagement,

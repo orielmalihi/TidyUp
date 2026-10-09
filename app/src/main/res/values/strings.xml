@@ -58,4 +58,11 @@
     <string name="remove_all">Remove all</string>
     <string name="remove_all_confirm">Remove all chores?</string>
     <string name="tab_parents">Parents</string>
+    <string name="backup_found_title">Backup found</string>
+    <string name="backup_found_message">Found a saved backup with %1$d heroes and %2$d chores (saved %3$s). Restore it? If you skip, a new backup will replace it.</string>
+    <string name="restore">Restore</string>
+    <string name="no_thanks">No thanks</string>
+    <string name="restore_from_file">Restore from backup file</string>
+    <string name="restore_done">Backup restored!</string>
+    <string name="restore_failed">Couldn\'t read that backup file</string>
 </resources>

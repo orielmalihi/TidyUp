@@ -20,6 +20,12 @@ import androidx.compose.ui.unit.sp
 import com.example.choreapp.R
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.remember
+import java.text.DateFormat
+import java.util.Date
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -187,6 +193,7 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                     onLanguageChange = viewModel::updateLanguage,
                     onNavigateToCleanerManagement = { navController.navigate(Screen.CleanerManagement.route) },
                     onNavigateToChoreManagement = { navController.navigate(Screen.ChoreManagement.route) },
+                    onRestoreFile = viewModel::restoreFromFile,
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -210,6 +217,18 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                     onBack = { navController.popBackStack() }
                 )
             }
+        }
+
+        val pendingRestore by viewModel.pendingRestore.collectAsState()
+        pendingRestore?.let { backup ->
+            val saved = remember(backup) { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(backup.savedAt)) }
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text(stringResource(R.string.backup_found_title)) },
+                text = { Text(stringResource(R.string.backup_found_message, backup.cleaners.size, backup.chores.size, saved)) },
+                confirmButton = { Button(onClick = viewModel::restoreBackup) { Text(stringResource(R.string.restore)) } },
+                dismissButton = { TextButton(onClick = viewModel::skipRestore) { Text(stringResource(R.string.no_thanks)) } }
+            )
         }
 
         celebration?.let {

@@ -33,6 +33,7 @@ abstract class ChoreAppDatabase : RoomDatabase() {
     abstract fun allTimeScoreDao(): AllTimeScoreDao
     abstract fun settingsDao(): SettingsDao
     abstract fun commentDao(): CommentDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         @Volatile

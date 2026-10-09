@@ -48,4 +48,8 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideCommentDao(database: ChoreAppDatabase) = database.commentDao()
+
+    @Singleton
+    @Provides
+    fun provideBackupDao(database: ChoreAppDatabase) = database.backupDao()
 }

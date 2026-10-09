@@ -2,6 +2,8 @@ package com.example.choreapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.choreapp.data.backup.BackupManager
+import com.example.choreapp.data.backup.BackupSnapshot
 import com.example.choreapp.data.repository.AllTimeScoreRepository
 import com.example.choreapp.data.repository.ChoreInstanceRepository
 import com.example.choreapp.data.repository.ChoreRepository
@@ -50,8 +52,21 @@ class ChoreAppViewModel @Inject constructor(
     private val dailyScoreRepository: DailyScoreRepository,
     private val allTimeScoreRepository: AllTimeScoreRepository,
     private val commentRepository: CommentRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val backupManager: BackupManager
 ) : ViewModel() {
+
+    val pendingRestore: StateFlow<BackupSnapshot?> = backupManager.pendingRestore
+
+    fun restoreBackup() {
+        viewModelScope.launch { backupManager.restore() }
+    }
+
+    fun skipRestore() = backupManager.skipRestore()
+
+    fun restoreFromFile(text: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch { onResult(backupManager.restoreFromText(text)) }
+    }
 
     // Re-emits when midnight passes so every "today" screen starts from zero automatically.
     private val today: Flow<String> = flow {
