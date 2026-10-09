@@ -101,7 +101,7 @@ private fun MainTabs(
     val tabs = listOf(
         TAB_CHORES to "🧽  " + stringResource(R.string.manage_chores),
         TAB_POINTS to "🏆  " + stringResource(R.string.points),
-        TAB_PARENTS to "👨‍👩‍👧  " + stringResource(R.string.tab_parents)
+        TAB_PARENTS to "👍  " + stringResource(R.string.tab_parents)
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
