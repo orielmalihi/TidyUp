@@ -1,12 +1,10 @@
 package com.example.choreapp.ui.components
 
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -138,8 +136,8 @@ fun CelebrationDialog(celebration: Celebration, onDismiss: () -> Unit) {
     var shown by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { shown = true }
     val popScale by animateFloatAsState(
-        targetValue = if (shown) 1f else 0.2f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = Spring.StiffnessLow),
+        targetValue = if (shown) 1f else 0.85f,
+        animationSpec = tween(250),
         label = "pop"
     )
 

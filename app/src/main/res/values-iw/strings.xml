@@ -45,7 +45,7 @@
     <string name="nothing_to_review">אין מה לבדוק! 🎉</string>
     <string name="awaiting_review">משימות שממתינות לבדיקה (%1$d)</string>
     <string name="review_hint">בדקו במציאות ואז אשרו</string>
-    <string name="plus_points">+%1$d נקודות</string>
+    <string name="plus_points">&#x200E;+%1$d נקודות</string>
     <string name="points_after_approval">הנקודות מגיעות כשהורה מאשר!</string>
     <string name="great">מעולה!</string>
     <string name="delete_confirm">למחוק את %1$s?</string>
