@@ -64,9 +64,6 @@ class ChoreAppViewModel @Inject constructor(
 
     fun skipRestore() = backupManager.skipRestore()
 
-    fun restoreFromFile(text: String, onResult: (Boolean) -> Unit) {
-        viewModelScope.launch { onResult(backupManager.restoreFromText(text)) }
-    }
 
     // Re-emits when midnight passes so every "today" screen starts from zero automatically.
     private val today: Flow<String> = flow {

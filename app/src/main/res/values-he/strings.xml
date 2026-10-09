@@ -62,7 +62,4 @@
     <string name="backup_found_message">נמצא גיבוי שמור עם %1$d גיבורים ו-%2$d משימות (נשמר %3$s). לשחזר? אם תדלגו, גיבוי חדש יחליף אותו.</string>
     <string name="restore">שחזור</string>
     <string name="no_thanks">לא תודה</string>
-    <string name="restore_from_file">שחזור מקובץ גיבוי</string>
-    <string name="restore_done">הגיבוי שוחזר!</string>
-    <string name="restore_failed">לא הצלחנו לקרוא את קובץ הגיבוי</string>
 </resources>

@@ -65,16 +65,6 @@ class BackupManager @Inject constructor(
         armed = true
     }
 
-    // Used when the user picks a backup file manually (MediaStore hides files left by a previous install).
-    suspend fun restoreFromText(text: String): Boolean = withContext(Dispatchers.IO) {
-        val snapshot = runCatching { BackupJson.decode(text) }.getOrNull()
-        if (snapshot == null || snapshot.cleaners.isEmpty()) return@withContext false
-        dao.replaceAll(snapshot)
-        _pendingRestore.value = null
-        armed = true
-        true
-    }
-
     fun skipRestore() {
         _pendingRestore.value = null
         armed = true

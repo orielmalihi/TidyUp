@@ -193,7 +193,6 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                     onLanguageChange = viewModel::updateLanguage,
                     onNavigateToCleanerManagement = { navController.navigate(Screen.CleanerManagement.route) },
                     onNavigateToChoreManagement = { navController.navigate(Screen.ChoreManagement.route) },
-                    onRestoreFile = viewModel::restoreFromFile,
                     onBack = { navController.popBackStack() }
                 )
             }
