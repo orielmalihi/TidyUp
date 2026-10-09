@@ -175,7 +175,7 @@ fun ChoreSelectionScreen(
                         .height(52.dp)
                 ) { Text("➕  " + stringResource(R.string.add_chore)) }
             }
-            if (chores.isNotEmpty()) {
+            if (available.isNotEmpty()) {
                 item {
                     OutlinedButton(
                         onClick = { showRemoveAll = true },
@@ -216,7 +216,8 @@ fun ChoreSelectionScreen(
                 onDeleteAll()
                 showRemoveAll = false
             },
-            onCancel = { showRemoveAll = false }
+            onCancel = { showRemoveAll = false },
+            title = R.string.remove_available_confirm
         )
     }
     if (showAddChore) {

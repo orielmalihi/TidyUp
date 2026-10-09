@@ -62,4 +62,5 @@
     <string name="backup_found_message">נמצא גיבוי שמור עם %1$d גיבורים ו-%2$d משימות (נשמר %3$s). לשחזר? אם תדלגו, גיבוי חדש יחליף אותו.</string>
     <string name="restore">שחזור</string>
     <string name="no_thanks">לא תודה</string>
+    <string name="remove_available_confirm">למחוק את כל המשימות הפנויות? (משימות שנלקחו או הושלמו יישארו)</string>
 </resources>

@@ -228,10 +228,14 @@ fun ChoreManagementScreen(
 }
 
 @Composable
-fun RemoveAllChoresDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
+fun RemoveAllChoresDialog(
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    @androidx.annotation.StringRes title: Int = R.string.remove_all_confirm
+) {
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text(stringResource(R.string.remove_all_confirm)) },
+        title = { Text(stringResource(title)) },
         confirmButton = {
             Button(
                 onClick = onConfirm,

@@ -158,7 +158,7 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                             onDone = viewModel::submitChore,
                             onPutBack = viewModel::unclaimChore,
                             onAddChore = viewModel::addChore,
-                            onDeleteAll = viewModel::deleteAllChores
+                            onDeleteAll = viewModel::deleteAvailableChores
                         )
                     },
                     pointsPage = {

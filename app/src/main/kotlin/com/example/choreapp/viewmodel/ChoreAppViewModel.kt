@@ -20,6 +20,7 @@ import com.example.choreapp.domain.model.Cleaner
 import com.example.choreapp.domain.model.Comment
 import com.example.choreapp.domain.model.DailyScore
 import com.example.choreapp.utils.Celebration
+import com.example.choreapp.utils.ChoreBoard
 import com.example.choreapp.utils.DateUtils
 import com.example.choreapp.utils.Sound
 import com.example.choreapp.utils.SoundEffects
@@ -158,6 +159,13 @@ class ChoreAppViewModel @Inject constructor(
         viewModelScope.launch {
             choreInstances.value.forEach { choreInstanceRepository.deleteInstance(it) }
             choreRepository.deleteAllChores()
+        }
+    }
+
+    // Chores that are taken, waiting for review or finished today are kept.
+    fun deleteAvailableChores() {
+        viewModelScope.launch {
+            ChoreBoard.available(allChores.value, choreInstances.value).forEach { choreRepository.deleteChore(it) }
         }
     }
 
