@@ -183,7 +183,7 @@ fun ChoreSelectionScreen(
                             .fillMaxWidth()
                             .height(52.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) { Text("🗑️  " + stringResource(R.string.remove_all)) }
+                    ) { Text("🗑️  " + stringResource(R.string.clear_available)) }
                 }
             }
 
@@ -217,7 +217,8 @@ fun ChoreSelectionScreen(
                 showRemoveAll = false
             },
             onCancel = { showRemoveAll = false },
-            title = R.string.remove_available_confirm
+            title = R.string.remove_available_confirm,
+            confirmLabel = R.string.clear_available
         )
     }
     if (showAddChore) {

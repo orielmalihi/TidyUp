@@ -231,7 +231,8 @@ fun ChoreManagementScreen(
 fun RemoveAllChoresDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
-    @androidx.annotation.StringRes title: Int = R.string.remove_all_confirm
+    @androidx.annotation.StringRes title: Int = R.string.remove_all_confirm,
+    @androidx.annotation.StringRes confirmLabel: Int = R.string.remove_all
 ) {
     AlertDialog(
         onDismissRequest = onCancel,
@@ -240,7 +241,7 @@ fun RemoveAllChoresDialog(
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) { Text(stringResource(R.string.remove_all)) }
+            ) { Text(stringResource(confirmLabel)) }
         },
         dismissButton = {
             TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }

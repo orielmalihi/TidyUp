@@ -62,5 +62,6 @@
     <string name="backup_found_message">Found a saved backup with %1$d heroes and %2$d chores (saved %3$s). Restore it? If you skip, a new backup will replace it.</string>
     <string name="restore">Restore</string>
     <string name="no_thanks">No thanks</string>
-    <string name="remove_available_confirm">Remove all available chores? (Taken and finished ones stay)</string>
+    <string name="remove_available_confirm">Clear available chores?</string>
+    <string name="clear_available">Clear available chores</string>
 </resources>
