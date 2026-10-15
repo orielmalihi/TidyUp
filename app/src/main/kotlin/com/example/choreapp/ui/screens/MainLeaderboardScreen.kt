@@ -205,7 +205,7 @@ fun CleanerScoreCard(
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "$animatedPoints",
+                    text = "\u200E$animatedPoints",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onBackground

@@ -110,7 +110,7 @@ fun AllTimeScoreCard(
                     }
                 }
                 Text(
-                    text = "${entry.points} ${stringResource(R.string.total_points)}",
+                    text = "\u200E${entry.points} ${stringResource(R.string.total_points)}",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
