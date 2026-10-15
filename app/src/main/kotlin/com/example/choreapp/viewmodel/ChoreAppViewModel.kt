@@ -231,18 +231,15 @@ class ChoreAppViewModel @Inject constructor(
     private val _penaltyEvents = MutableSharedFlow<PenaltyEvent>(extraBufferCapacity = 4)
     val penaltyEvents: SharedFlow<PenaltyEvent> = _penaltyEvents.asSharedFlow()
 
-    // Takes points from one hero, optionally handing them to another. Daily and all-time totals both change.
+    // Takes points from one hero, optionally handing them to another. Daily and all-time totals both change, and can go below zero.
     fun applyPenalty(fromId: String, toId: String?, amount: Int) {
         if (amount <= 0 || fromId == toId) return
         viewModelScope.launch {
             val date = DateUtils.getTodayDate()
-            val available = dailyScoreRepository.getScoreForCleanerOnDate(fromId, date)?.points ?: 0
-            val moved = amount.coerceAtMost(available)
-            if (moved <= 0) return@launch
-            changePoints(fromId, date, -moved)
-            if (toId != null) changePoints(toId, date, moved)
+            changePoints(fromId, date, -amount)
+            if (toId != null) changePoints(toId, date, amount)
             SoundEffects.play(if (toId != null) Sound.TRANSFER else Sound.PENALTY)
-            _penaltyEvents.emit(PenaltyEvent(fromId, toId, moved))
+            _penaltyEvents.emit(PenaltyEvent(fromId, toId, amount))
         }
     }
 

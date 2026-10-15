@@ -22,7 +22,10 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -75,7 +78,7 @@ fun MainLeaderboardScreen(
     ) {
         ScreenHeader(title = stringResource(R.string.main_screen_title)) {
             if (entries.isNotEmpty()) {
-                IconButton(onClick = { showPenalty = true }) { Text("🛑", fontSize = 26.sp) }
+                IconButton(onClick = { showPenalty = true }) { Image(painterResource(R.drawable.ic_stop_hand), contentDescription = stringResource(R.string.penalty), modifier = Modifier.size(34.dp)) }
             }
             IconButton(onClick = onNavigateToAllTime) { Text("👑", fontSize = 26.sp) }
             IconButton(onClick = onNavigateToSettings) { Text("⚙️", fontSize = 26.sp) }
@@ -157,7 +160,7 @@ fun CleanerScoreCard(
     val color = ColorUtils.hexToColor(entry.cleaner.color)
     val animatedPoints by animateIntAsState(entry.points, tween(700), label = "points")
     val progress by animateFloatAsState(
-        targetValue = if (best > 0) entry.points.toFloat() / best else 0f,
+        targetValue = if (best > 0) (entry.points.toFloat() / best).coerceIn(0f, 1f) else 0f,
         animationSpec = tween(700),
         label = "progress"
     )

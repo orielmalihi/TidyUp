@@ -71,5 +71,4 @@
     <string name="penalty_move">Give the points to another hero</string>
     <string name="penalty_receiver">Who gets the points?</string>
     <string name="apply">Apply</string>
-    <string name="penalty_too_many">Not enough points today (max %1$d)</string>
 </resources>

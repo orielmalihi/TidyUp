@@ -5,7 +5,10 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,12 +67,16 @@ fun PenaltyDialog(
 
     val from = entries.find { it.cleaner.id == fromId }
     val amount = amountText.toIntOrNull() ?: 0
-    val tooMany = from != null && amount > from.points
-    val valid = from != null && amount in 1..from.points && (!moveToOther || toId != null)
+    val valid = from != null && amount >= 1 && (!moveToOther || toId != null)
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("🛑  " + stringResource(R.string.penalty_title)) },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Image(painterResource(R.drawable.ic_stop_hand), contentDescription = null, modifier = Modifier.size(32.dp))
+                Text(stringResource(R.string.penalty_title))
+            }
+        },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -86,10 +93,6 @@ fun PenaltyDialog(
                     onValueChange = { v -> amountText = v.filter { it.isDigit() }.take(4) },
                     label = { Text(stringResource(R.string.penalty_amount)) },
                     singleLine = true,
-                    isError = tooMany,
-                    supportingText = {
-                        if (tooMany) Text(stringResource(R.string.penalty_too_many, from?.points ?: 0))
-                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -156,11 +159,11 @@ fun PenaltyFlight(
         coroutineScope {
             progress.forEachIndexed { i, a ->
                 async {
-                    delay(i * 90L)
-                    a.animateTo(1f, tween(900, easing = LinearEasing))
+                    delay(i * 160L)
+                    a.animateTo(1f, tween(1700, easing = LinearEasing))
                 }
             }
-            async { label.animateTo(1f, tween(1400, easing = LinearEasing)) }
+            async { label.animateTo(1f, tween(2600, easing = LinearEasing)) }
         }
         onFinished()
     }

@@ -71,5 +71,4 @@
     <string name="penalty_move">להעביר את הנקודות לגיבור אחר</string>
     <string name="penalty_receiver">מי מקבל את הנקודות?</string>
     <string name="apply">אישור</string>
-    <string name="penalty_too_many">אין מספיק נקודות היום (מקסימום %1$d)</string>
 </resources>
