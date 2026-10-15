@@ -188,7 +188,7 @@ fun PenaltyFlight(
         val l = label.value
         if (l in 0.001f..0.999f) {
             Text(
-                text = "-$points",
+                text = "\u200E-$points",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = androidx.compose.ui.graphics.Color(0xFFD32F2F),
@@ -198,7 +198,7 @@ fun PenaltyFlight(
             )
             if (to != null) {
                 Text(
-                    text = "+$points",
+                    text = "\u200E+$points",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = androidx.compose.ui.graphics.Color(0xFF2E7D32),
