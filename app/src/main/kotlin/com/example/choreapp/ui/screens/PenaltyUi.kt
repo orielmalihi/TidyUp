@@ -136,7 +136,7 @@ private fun HeroChips(entries: List<ScoreEntry>, selected: String?, onSelect: (S
             FilterChip(
                 selected = selected == entry.cleaner.id,
                 onClick = { onSelect(entry.cleaner.id) },
-                label = { Text("${entry.cleaner.avatar} ${entry.cleaner.name} (${entry.points})") },
+                label = { Text("${entry.cleaner.avatar} ${entry.cleaner.name} (\u200E${entry.points})") },
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             )
         }
