@@ -198,7 +198,9 @@ fun CleanerScoreCard(
                         .height(10.dp)
                         .clip(RoundedCornerShape(5.dp)),
                     color = color,
-                    trackColor = color.copy(alpha = 0.2f)
+                    trackColor = color.copy(alpha = 0.2f),
+                    gapSize = 0.dp,
+                    drawStopIndicator = {}
                 )
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
