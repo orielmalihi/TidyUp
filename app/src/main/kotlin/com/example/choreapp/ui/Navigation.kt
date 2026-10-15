@@ -164,6 +164,8 @@ private fun AppNavHost(viewModel: ChoreAppViewModel, language: String) {
                     pointsPage = {
                         MainLeaderboardScreen(
                             entries = todayBoard,
+                            penaltyEvents = viewModel.penaltyEvents,
+                            onApplyPenalty = viewModel::applyPenalty,
                             onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                             onNavigateToAllTime = { navController.navigate(Screen.AllTime.route) }
                         )

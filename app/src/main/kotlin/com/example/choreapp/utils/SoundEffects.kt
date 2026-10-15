@@ -8,7 +8,7 @@ import kotlin.math.PI
 import kotlin.math.exp
 import kotlin.math.sin
 
-enum class Sound { POP, PUT_BACK, DONE, APPROVE, REJECT, ADD }
+enum class Sound { POP, PUT_BACK, DONE, APPROVE, REJECT, ADD, PENALTY, TRANSFER }
 
 // Cute chimes synthesized in code, so the app needs no audio files.
 object SoundEffects {
@@ -78,6 +78,13 @@ object SoundEffects {
                 Note(0.27, 0.45, 1046.5), Note(0.36, 0.5, 1318.5, volume = 0.3), Note(0.46, 0.5, 1568.0, volume = 0.25)
             )
             Sound.APPROVE -> listOf(Note(0.0, 0.1, 987.8), Note(0.09, 0.6, 1318.5), Note(0.09, 0.6, 1975.5, volume = 0.2))
+            Sound.PENALTY -> listOf(
+                Note(0.00, 0.14, 660.0, 620.0), Note(0.13, 0.14, 520.0, 480.0), Note(0.26, 0.4, 392.0, 300.0)
+            )
+            Sound.TRANSFER -> listOf(
+                Note(0.00, 0.12, 500.0, 900.0), Note(0.10, 0.12, 700.0, 1200.0), Note(0.20, 0.12, 900.0, 1500.0),
+                Note(0.34, 0.5, 1318.5), Note(0.42, 0.5, 1760.0, volume = 0.3)
+            )
             Sound.REJECT -> listOf(Note(0.0, 0.18, 392.0, 370.0), Note(0.16, 0.26, 330.0, 300.0))
         }
         val total = notes.maxOf { it.start + it.duration + 0.05 }

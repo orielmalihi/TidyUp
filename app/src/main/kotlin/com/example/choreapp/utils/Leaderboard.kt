@@ -9,6 +9,7 @@ import com.example.choreapp.domain.model.DailyScore
 
 data class ScoreEntry(val cleaner: Cleaner, val points: Int)
 
+data class PenaltyEvent(val fromId: String, val toId: String?, val points: Int)
 data class Celebration(val kidName: String, val message: String, val points: Int)
 
 object Leaderboard {

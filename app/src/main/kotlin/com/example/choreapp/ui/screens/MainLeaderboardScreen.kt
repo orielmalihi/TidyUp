@@ -22,7 +22,20 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import com.example.choreapp.utils.PenaltyEvent
+import kotlinx.coroutines.flow.Flow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,15 +56,27 @@ private val medals = listOf("🥇", "🥈", "🥉")
 @Composable
 fun MainLeaderboardScreen(
     entries: List<ScoreEntry>,
+    penaltyEvents: Flow<PenaltyEvent>,
+    onApplyPenalty: (fromId: String, toId: String?, amount: Int) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAllTime: () -> Unit
 ) {
+    var showPenalty by remember { mutableStateOf(false) }
+    val cardCenters = remember { mutableStateMapOf<String, Offset>() }
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    val flights = remember { mutableStateListOf<PenaltyEvent>() }
+    LaunchedEffect(penaltyEvents) { penaltyEvents.collect { flights.add(it) } }
+
+    Box(modifier = Modifier.fillMaxSize().onGloballyPositioned { origin = it.positionInRoot() }) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         ScreenHeader(title = stringResource(R.string.main_screen_title)) {
+            if (entries.isNotEmpty()) {
+                IconButton(onClick = { showPenalty = true }) { Text("🛑", fontSize = 26.sp) }
+            }
             IconButton(onClick = onNavigateToAllTime) { Text("👑", fontSize = 26.sp) }
             IconButton(onClick = onNavigateToSettings) { Text("⚙️", fontSize = 26.sp) }
         }
@@ -84,11 +109,41 @@ fun MainLeaderboardScreen(
                         entry = entry,
                         medal = if (entry.points > 0) medals.getOrNull(rank) else null,
                         best = best,
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier
+                            .animateItem()
+                            .trackPosition { cardCenters[entry.cleaner.id] = it }
                     )
                 }
             }
         }
+    }
+
+    flights.toList().forEach { event ->
+        val from = cardCenters[event.fromId]
+        if (from == null) {
+            flights.remove(event)
+        } else {
+            key(event) {
+                PenaltyFlight(
+                    from = from - origin,
+                    to = event.toId?.let { cardCenters[it] }?.let { it - origin },
+                    points = event.points,
+                    onFinished = { flights.remove(event) }
+                )
+            }
+        }
+    }
+    }
+
+    if (showPenalty) {
+        PenaltyDialog(
+            entries = entries,
+            onApply = { from, to, amount ->
+                showPenalty = false
+                onApplyPenalty(from, to, amount)
+            },
+            onCancel = { showPenalty = false }
+        )
     }
 }
 

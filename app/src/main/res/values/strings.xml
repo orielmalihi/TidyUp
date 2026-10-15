@@ -64,4 +64,12 @@
     <string name="no_thanks">No thanks</string>
     <string name="remove_available_confirm">Clear available chores?</string>
     <string name="clear_available">Clear available chores</string>
+    <string name="penalty">Penalty</string>
+    <string name="penalty_title">Apply penalty</string>
+    <string name="penalty_who">Which hero loses points?</string>
+    <string name="penalty_amount">How many points?</string>
+    <string name="penalty_move">Give the points to another hero</string>
+    <string name="penalty_receiver">Who gets the points?</string>
+    <string name="apply">Apply</string>
+    <string name="penalty_too_many">Not enough points today (max %1$d)</string>
 </resources>

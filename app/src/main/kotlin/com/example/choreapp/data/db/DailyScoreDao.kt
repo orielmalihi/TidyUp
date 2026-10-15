@@ -25,7 +25,7 @@ interface DailyScoreDao {
     @Query("SELECT * FROM daily_scores WHERE cleanerId = :cleanerId AND date = :date")
     suspend fun getScoreForCleanerOnDate(cleanerId: String, date: String): DailyScore?
 
-    @Query("UPDATE daily_scores SET points = points + :addPoints WHERE cleanerId = :cleanerId AND date = :date")
+    @Query("UPDATE daily_scores SET points = MAX(0, points + :addPoints) WHERE cleanerId = :cleanerId AND date = :date")
     suspend fun addPointsToCleanerOnDate(cleanerId: String, date: String, addPoints: Int)
 
     @Query("DELETE FROM daily_scores WHERE date = :date")

@@ -25,7 +25,7 @@ interface AllTimeScoreDao {
     @Query("SELECT * FROM all_time_scores WHERE cleanerId = :cleanerId")
     suspend fun getScoreForCleaner(cleanerId: String): AllTimeScore?
 
-    @Query("UPDATE all_time_scores SET totalPoints = totalPoints + :addPoints WHERE cleanerId = :cleanerId")
+    @Query("UPDATE all_time_scores SET totalPoints = MAX(0, totalPoints + :addPoints) WHERE cleanerId = :cleanerId")
     suspend fun addPointsToCleaner(cleanerId: String, addPoints: Int)
 
     @Query("SELECT totalPoints FROM all_time_scores WHERE cleanerId = :cleanerId")

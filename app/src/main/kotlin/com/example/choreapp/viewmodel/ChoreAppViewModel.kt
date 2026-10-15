@@ -21,6 +21,7 @@ import com.example.choreapp.domain.model.Comment
 import com.example.choreapp.domain.model.DailyScore
 import com.example.choreapp.utils.Celebration
 import com.example.choreapp.utils.ChoreBoard
+import com.example.choreapp.utils.PenaltyEvent
 import com.example.choreapp.utils.DateUtils
 import com.example.choreapp.utils.Sound
 import com.example.choreapp.utils.SoundEffects
@@ -30,7 +31,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -222,6 +226,35 @@ class ChoreAppViewModel @Inject constructor(
             }
             _celebration.value = Celebration(kid?.name.orEmpty(), message, chore?.points ?: 0)
         }
+    }
+
+    private val _penaltyEvents = MutableSharedFlow<PenaltyEvent>(extraBufferCapacity = 4)
+    val penaltyEvents: SharedFlow<PenaltyEvent> = _penaltyEvents.asSharedFlow()
+
+    // Takes points from one hero, optionally handing them to another. Daily and all-time totals both change.
+    fun applyPenalty(fromId: String, toId: String?, amount: Int) {
+        if (amount <= 0 || fromId == toId) return
+        viewModelScope.launch {
+            val date = DateUtils.getTodayDate()
+            val available = dailyScoreRepository.getScoreForCleanerOnDate(fromId, date)?.points ?: 0
+            val moved = amount.coerceAtMost(available)
+            if (moved <= 0) return@launch
+            changePoints(fromId, date, -moved)
+            if (toId != null) changePoints(toId, date, moved)
+            SoundEffects.play(if (toId != null) Sound.TRANSFER else Sound.PENALTY)
+            _penaltyEvents.emit(PenaltyEvent(fromId, toId, moved))
+        }
+    }
+
+    private suspend fun changePoints(cleanerId: String, date: String, delta: Int) {
+        if (dailyScoreRepository.getScoreForCleanerOnDate(cleanerId, date) == null) {
+            dailyScoreRepository.addScore(DailyScore(cleanerId = cleanerId, date = date, points = 0))
+        }
+        dailyScoreRepository.addPointsToCleanerOnDate(cleanerId, date, delta)
+        if (allTimeScoreRepository.getScoreForCleaner(cleanerId) == null) {
+            allTimeScoreRepository.addScore(AllTimeScore(cleanerId = cleanerId, totalPoints = 0))
+        }
+        allTimeScoreRepository.addPointsToCleaner(cleanerId, delta)
     }
 
     fun dismissCelebration() {
